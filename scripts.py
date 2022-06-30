@@ -6,14 +6,24 @@ from datacenter.models import Mark, Schoolkid, Chastisement, Lesson, Subject, Co
 
 
 def fix_marks(name):
-    schoolkid = fetch_schoolkid(name)
-    Mark.objects.filter(schoolkid=schoolkid, points__lt=4).update(points=5)
+    try:
+        schoolkid = fetch_schoolkid(name)
+        Mark.objects.filter(schoolkid=schoolkid, points__lt=4).update(points=5)
+    except ObjectDoesNotExist:
+        raise ObjectDoesNotExist(f'Не найдено ни одного урока ученика "{name}"')
+    except MultipleObjectsReturned:
+        raise MultipleObjectsReturned('Найдено более одной записи, уточните ФИО ученика')
 
 
 def del_chastisements(name):
-    schoolkid = fetch_schoolkid(name)
-    Chastisement.objects.filter(schoolkid=schoolkid).delete()
-
+    try:
+        schoolkid = fetch_schoolkid(name)
+        Chastisement.objects.filter(schoolkid=schoolkid).delete()
+    except ObjectDoesNotExist:
+        raise ObjectDoesNotExist(f'Не найдено ни одного урока ученика "{name}"')
+    except MultipleObjectsReturned:
+        raise MultipleObjectsReturned('Найдено более одной записи, уточните ФИО ученика')
+    
 
 def create_commendation(name, subject_name):
     commendation_texts = [
@@ -48,12 +58,9 @@ def create_commendation(name, subject_name):
         'Ты многое сделал, я это вижу!',
         'Теперь у тебя точно все получится!',
     ]
-    schoolkid = fetch_schoolkid(name)
-    if schoolkid:
-        try:
-            subject = Subject.objects.get(title__contains=subject_name, year_of_study=schoolkid.year_of_study)
-        except ObjectDoesNotExist:
-            print(f"Не найдено ни одного урока {subject_name} у ученика {name}")
+    try:
+        schoolkid = fetch_schoolkid(name)
+        subject = Subject.objects.get(title__contains=subject_name, year_of_study=schoolkid.year_of_study)
         lessons = Lesson.objects.filter(
             year_of_study=schoolkid.year_of_study,
             group_letter=schoolkid.group_letter,
@@ -71,14 +78,12 @@ def create_commendation(name, subject_name):
                     teacher=lesson.teacher
                 )
                 break
+    except ObjectDoesNotExist:
+        raise ObjectDoesNotExist(f'Не найдено ни одного урока "{subject_name}" или ученика "{name}"')
+    except MultipleObjectsReturned:
+        raise MultipleObjectsReturned('Найдено более одной записи, уточните ФИО ученика')
 
 
 def fetch_schoolkid(name):
-    try:
-        schoolkid = Schoolkid.objects.get(full_name__contains=name)
-        return schoolkid
-    except MultipleObjectsReturned:
-        print('Найдено более одной записи, уточните ФИО ученика')
-    except ObjectDoesNotExist:
-        print(f'Не найдено ни одного ученика "{name}"')
-
+    schoolkid = Schoolkid.objects.get(full_name__contains=name)
+    return schoolkid
