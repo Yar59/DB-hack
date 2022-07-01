@@ -10,9 +10,9 @@ def fix_marks(name):
         schoolkid = fetch_schoolkid(name)
         Mark.objects.filter(schoolkid=schoolkid, points__lt=4).update(points=5)
     except ObjectDoesNotExist:
-        raise ObjectDoesNotExist(f'Не найдено ни одного урока ученика "{name}"')
+        print(f'Не найдено ни одного урока ученика "{name}"')
     except MultipleObjectsReturned:
-        raise MultipleObjectsReturned('Найдено более одной записи, уточните ФИО ученика')
+        print('Найдено более одной записи, уточните ФИО ученика')
 
 
 def del_chastisements(name):
@@ -20,9 +20,9 @@ def del_chastisements(name):
         schoolkid = fetch_schoolkid(name)
         Chastisement.objects.filter(schoolkid=schoolkid).delete()
     except ObjectDoesNotExist:
-        raise ObjectDoesNotExist(f'Не найдено ни одного урока ученика "{name}"')
+        print(f'Не найдено ни одного урока ученика "{name}"')
     except MultipleObjectsReturned:
-        raise MultipleObjectsReturned('Найдено более одной записи, уточните ФИО ученика')
+        print('Найдено более одной записи, уточните ФИО ученика')
     
 
 def create_commendation(name, subject_name):
@@ -79,9 +79,9 @@ def create_commendation(name, subject_name):
                 )
                 break
     except ObjectDoesNotExist:
-        raise ObjectDoesNotExist(f'Не найдено ни одного урока "{subject_name}" или ученика "{name}"')
+        print(f'Не найдено ни одного урока "{subject_name}" или ученика "{name}"')
     except MultipleObjectsReturned:
-        raise MultipleObjectsReturned('Найдено более одной записи, уточните ФИО ученика')
+        print('Найдено более одной записи, уточните ФИО ученика')
 
 
 def fetch_schoolkid(name):
