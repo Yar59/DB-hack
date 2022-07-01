@@ -23,7 +23,7 @@ def del_chastisements(name):
         print(f'Не найдено ни одного урока ученика "{name}"')
     except MultipleObjectsReturned:
         print('Найдено более одной записи, уточните ФИО ученика')
-    
+
 
 def create_commendation(name, subject_name):
     commendation_texts = [
@@ -61,23 +61,26 @@ def create_commendation(name, subject_name):
     try:
         schoolkid = fetch_schoolkid(name)
         subject = Subject.objects.get(title__contains=subject_name, year_of_study=schoolkid.year_of_study)
+
+        commendation_text = random.choice(commendation_texts)
+        commendations = Commendation.objects.filter(schoolkid=schoolkid, subject=subject)
+        commendations_dates = []
+        for commendation in commendations:
+            commendations_dates.append(commendation.created)
         lessons = Lesson.objects.filter(
             year_of_study=schoolkid.year_of_study,
             group_letter=schoolkid.group_letter,
-            subject=subject
+            subject=subject,
+        ).exclude(date__in=commendations_dates)
+        lesson = random.choice(lessons)
+        Commendation.objects.create(
+            text=commendation_text,
+            created=lesson.date,
+            schoolkid=schoolkid,
+            subject=lesson.subject,
+            teacher=lesson.teacher
         )
-        commendation_text = random.choice(commendation_texts)
-        while True:
-            lesson = random.choice(lessons)
-            if not Commendation.objects.filter(created=lesson.date, subject=subject, schoolkid=schoolkid, ):
-                Commendation.objects.create(
-                    text=commendation_text,
-                    created=lesson.date,
-                    schoolkid=schoolkid,
-                    subject=lesson.subject,
-                    teacher=lesson.teacher
-                )
-                break
+
     except ObjectDoesNotExist:
         print(f'Не найдено ни одного урока "{subject_name}" или ученика "{name}"')
     except MultipleObjectsReturned:
